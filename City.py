@@ -12,7 +12,7 @@ class City:
 		self.neighbours[neighbour] = distance
 
 	def __str__(self):
-		return 'city %s %s : (%s, %s)' % (self.id, self.name, self.x, self.y)
+		return 'city {0} {1} : ({2}, {3})'.format(self.id, self.name, self.x, self.y)
 
 	def __eq__(self, other):
 		return self.id == other.id
