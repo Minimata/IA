@@ -54,7 +54,9 @@ def a_star(city_from, city_to, f_heuristic, f_cost):
 	# here we initialize frontiere with the first city, where we start the journey
 	# its base cost is 0, and its parent is None
 	frontiere = []
-	heappush(frontiere, (0, city_from, f_cost(0, city_from, city_from), None))
+	city_info = namedtuple('city_info', 'prio cost city parent')
+	source = city_info(prio=0, cost=0, city=city_from, parent=None)
+	heappush(frontiere, source)
 
 	# keeping a trace of visited cities to prevent going in circles
 	hist = set()
@@ -66,22 +68,22 @@ def a_star(city_from, city_to, f_heuristic, f_cost):
 	i = 0
 	while frontiere:
 		i += 1
-		city_info = heappop(frontiere)  # We get the next city to visit, the 'closest one' according to heuristic + cost
-		a_star_cost, city, cost, city_parent = city_info  # city_parent & a_star_cost unused
+		info = heappop(frontiere)  # We get the next city to visit, the 'closest one' according to heuristic + cost
+		a_star_cost, cost, city, city_parent = info  # city_parent & a_star_cost unused
 
 		hist.add(city)
-		itinerary[city] = city_info
+		itinerary[city] = info
 
 		if city == city_to:  # meaning we arrived at destination
 			open_cities = len(frontiere)
 			city_i = city
-			it = []  # this will store our final itinerary
+			final_iti = []  # this will store our final itinerary
 			while city_i is not None:  # we recreate the best itinerary from destination to source, parent to parent
-				it.append(itinerary[city_i])
-				city_i = itinerary[city_i][3]
+				final_iti.append(itinerary[city_i])
+				city_i = itinerary[city_i].parent
 
-			info = (city, cost, i, open_cities, reversed(it))
-			return info
+			final = (city, cost, i, open_cities, reversed(final_iti))
+			return final
 
 		# reached only if destination isn't met
 		for possible_destination in city.neighbours:
@@ -90,23 +92,24 @@ def a_star(city_from, city_to, f_heuristic, f_cost):
 				# For every neighbour of a city, we add it to the frontiere with updated cost if it has
 				# not already been visited before
 				cost_i = f_cost(cost, city, dest)
-				heappush(frontiere, (f_heuristic(dest, city_to) + cost_i, dest, cost_i, city))
+				dest_info = city_info(prio=f_heuristic(dest, city_to) + cost_i, cost=cost_i, city=dest, parent=city)
+				heappush(frontiere, dest_info)
 
 		# We then delete duplicate cities in our frontiere and only keep the ones with the best heuristic + cost
 		visited_cities = set()
 		new_frontiere = []
 		while frontiere:
 			recurring = heappop(frontiere)
-			if recurring[1] not in visited_cities:
+			if recurring.city not in visited_cities:
 				heappush(new_frontiere, recurring)
-				visited_cities.add(recurring[1])
+				visited_cities.add(recurring.city)
 		frontiere = new_frontiere
 
 		# DEBUG - displays current city, frontiere and hist at any iteration
 		print("Went to %s" % city)
 		print("FRONTIERE")
 		for j in frontiere:
-			print("{0} \t cost : {1} \t priority : {2}".format(j[1], j[2], j[0]))
+			print("{0} \t cost : {1} \t priority : {2}".format(j.city, j.cost, j.prio))
 		print("HIST")
 		print(*hist, sep="\n")
 		print("")
@@ -140,7 +143,7 @@ if __name__ == '__main__':
 	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
 	print("Go trough :")
 	for info in itinerary:
-		print(" - %s \t then " % info[1])
+		print(" - {0} \t then ".format(info.city))
 
 
 
