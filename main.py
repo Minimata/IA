@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
 	start = all_cities['Warsaw']
 	objective = all_cities['Lisbon']
-	print('From %s to %s' % (start, objective))
+	print('From {0} to {1}'.format(start, objective))
 
 	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g1)
 	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
