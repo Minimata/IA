@@ -123,7 +123,7 @@ if __name__ == '__main__':
 			all_cities[name] = City(count, name, int(x), int(y))
 			count += 1
 
-	with open(connections) as f:
+	with open(connections, newline='') as f:
 		reader = csv.reader(f, delimiter=" ")
 		for src, dst, cost in reader:
 			all_cities[src].add_connection(dst, int(cost))
