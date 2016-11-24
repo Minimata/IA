@@ -122,14 +122,14 @@ if __name__ == '__main__':
 	connections = sys.argv[2]
 	all_cities = {}
 
-	with open(positions, newline='') as f:
+	with opened(positions, newline='') as f:
 		count = 0
 		reader = csv.reader(f, delimiter=" ")
 		for name, x, y in reader:
 			all_cities[name] = City(count, name, int(x), int(y))
 			count += 1
 
-	with open(connections, newline='') as f:
+	with opened(connections, newline='') as f:
 		reader = csv.reader(f, delimiter=" ")
 		for src, dst, cost in reader:
 			all_cities[src].add_connection(dst, int(cost))
@@ -153,20 +153,20 @@ if __name__ == '__main__':
 	complexes et il est important de bien les définir et les choisir en fonction des besoins (itinéraire optimal,
 	performances, cout mémoire, etc.)
 	'''
-	dest, cost, iter, open, itinerary = a_star(start, objective, h0, g1, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h0, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	#print_itinerary(itinerary)
-	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g1, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h1, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	#print_itinerary(itinerary)
-	dest, cost, iter, open, itinerary = a_star(start, objective, h2, g1, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h2, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	#print_itinerary(itinerary)
-	dest, cost, iter, open, itinerary = a_star(start, objective, h3, g1, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h3, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	#print_itinerary(itinerary)
-	dest, cost, iter, open, itinerary = a_star(start, objective, h4, g1, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h4, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	print_itinerary(itinerary)
 
 	'''
@@ -179,9 +179,9 @@ if __name__ == '__main__':
 	inférieur par rapport à un parcours en largeur qui lui, assure de trouver le chemin optimal mais au prix d'énormes
 	ressources.
 	'''
-	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g2, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h1, g2, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	print_itinerary(itinerary)
-	dest, cost, iter, open, itinerary = a_star(start, objective, h3, g2, verbose=False, debug=False)
-	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	dest, cost, iteration, opened, itinerary = a_star(start, objective, h3, g2, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 	print_itinerary(itinerary)
