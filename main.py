@@ -111,6 +111,12 @@ def a_star(city_from, city_to, h=h3, g=g1, **kwargs):
 			print("")
 
 
+def print_itinerary(iti):
+	print("Go trough :")
+	for info in iti:
+		print(" - {0} \t then ".format(info.city))
+
+
 if __name__ == '__main__':
 	positions = sys.argv[1]
 	connections = sys.argv[2]
@@ -133,8 +139,49 @@ if __name__ == '__main__':
 	objective = all_cities['Lisbon']
 	print('From {0} to {1}'.format(start, objective))
 
-	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g1, verbose=True, debug=False)
+	'''
+	Il se trouve que les performances en terme de nombre d'itérations dans la boucle (et donc en terme de villes
+	visitées) varient peu selon les heuristiques (18 +/- 1 villes).
+	Ceci est susceptible de changer lors de l'application de A* dans des graphes plus conséquents.
+
+	On priviligiera une heuristique vol d'oiseau car optimiste, toujours plus petite ou égale à la distance réelle
+	et nulle lorsque l'on est a destination (par définition de l'heuristique, mais quand même).
+	Si on cherche une bonne performance, le vol d'oiseau n'est pas recommandé car couteux en ressources (nécessite
+	une racine carrée), mais Manhattan est plus léger et semble donner de bons résultats également.
+
+	Dans la réalité, le graphe peut être pondéré par beaucoup de valeurs. Les heuristiques et cout peuvent devenir très
+	complexes et il est important de bien les définir et les choisir en fonction des besoins (itinéraire optimal,
+	performances, cout mémoire, etc.)
+	'''
+	dest, cost, iter, open, itinerary = a_star(start, objective, h0, g1, verbose=False, debug=False)
 	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
-	print("Go trough :")
-	for info in itinerary:
-		print(" - {0} \t then ".format(info.city))
+	#print_itinerary(itinerary)
+	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	#print_itinerary(itinerary)
+	dest, cost, iter, open, itinerary = a_star(start, objective, h2, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	#print_itinerary(itinerary)
+	dest, cost, iter, open, itinerary = a_star(start, objective, h3, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	#print_itinerary(itinerary)
+	dest, cost, iter, open, itinerary = a_star(start, objective, h4, g1, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	print_itinerary(itinerary)
+
+	'''
+	Ici, on change le cout. On ne parle plus de km parcourus mais de nombre de villes visitées.
+	Ce cout-ci nous permet de voir que deux heuristiques différentes peuvent produire un itinéraire différent
+	(cas que nous n'avons pas réussi à provoquer avec les fonctions ci-dessus avec le cout standard).
+
+	Ceci montre que A* ne prétend pas toujours trouver le chemin optimal, mais trouve un chemin suboptimal.
+	Un chemin qui sera bon, pas forcément le meilleur, mais au moins le temps pour le trouver est largement
+	inférieur par rapport à un parcours en largeur qui lui, assure de trouver le chemin optimal mais au prix d'énormes
+	ressources.
+	'''
+	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g2, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	print_itinerary(itinerary)
+	dest, cost, iter, open, itinerary = a_star(start, objective, h3, g2, verbose=False, debug=False)
+	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
+	print_itinerary(itinerary)
