@@ -47,7 +47,7 @@ def a_star(city_from, city_to, f_heuristic, f_cost):
 	 - A city to go
 	 - A heuristic function, taking two cities in argument (current and destination)
 	 - A cost function, taking as arguments the cost of current city, the current city and the destination
-	These functions would have been better with *args / **kwargs arguments to allow any kind of heuristic / cost computation
+	@:arg city_from:
 	'''
 
 	# frontiere is made of tuples with (city, cost_from_source, parent)
@@ -121,19 +121,19 @@ if __name__ == '__main__':
 	connections = sys.argv[2]
 	all_cities = {}
 
-	with open(positions) as f:
+	with open(positions, newline='') as f:
 		count = 0
-		for line in f:
-			info = line.split(' ')
-			all_cities[info[0]] = City(count, info[0], int(info[1]), int(info[2]))
-			all_cities[info[0]].add_connection(info[0], 0)  # every city is connected to itself, with distance 0
+		reader = csv.reader(f, delimiter=" ")
+		for name, x, y in reader:
+			all_cities[name] = City(count, name, int(x), int(y))
+			all_cities[name].add_connection(name, 0)
 			count += 1
 
 	with open(connections) as f:
-		for line in f:
-			info = line.split(' ')
-			all_cities[info[0]].add_connection(info[1], int(info[2]))
-			all_cities[info[1]].add_connection(info[0], int(info[2]))
+		reader = csv.reader(f, delimiter=" ")
+		for src, dst, cost in reader:
+			all_cities[src].add_connection(dst, int(cost))
+			all_cities[dst].add_connection(src, int(cost))
 
 	start = all_cities['Warsaw']
 	objective = all_cities['Lisbon']
