@@ -41,14 +41,8 @@ def g2(base_cost, *args):
 	return base_cost + 1
 
 
-def a_star(city_from, city_to, f_heuristic, f_cost):
-	'''A* Algorithm. Arguments are
-	 - A city to start to
-	 - A city to go
-	 - A heuristic function, taking two cities in argument (current and destination)
-	 - A cost function, taking as arguments the cost of current city, the current city and the destination
-	@:arg city_from:
-	'''
+def a_star(city_from, city_to, h=h3, g=g1, **kwargs):
+	'''A* Algorithm'''
 
 	# frontiere is made of tuples with (city, cost_from_source, parent)
 	# here we initialize frontiere with the first city, where we start the journey
@@ -91,8 +85,8 @@ def a_star(city_from, city_to, f_heuristic, f_cost):
 			if dest not in hist:
 				# For every neighbour of a city, we add it to the frontiere with updated cost if it has
 				# not already been visited before
-				cost_i = f_cost(cost, city, dest)
-				dest_info = city_info(prio=f_heuristic(dest, city_to) + cost_i, cost=cost_i, city=dest, parent=city)
+				cost_i = g(cost, city, dest)
+				dest_info = city_info(prio=h(dest, city_to) + cost_i, cost=cost_i, city=dest, parent=city)
 				heappush(frontiere, dest_info)
 
 		# We then delete duplicate cities in our frontiere and only keep the ones with the best heuristic + cost
@@ -106,14 +100,15 @@ def a_star(city_from, city_to, f_heuristic, f_cost):
 		frontiere = new_frontiere
 
 		# DEBUG - displays current city, frontiere and hist at any iteration
-		print("Went to %s" % city)
-		print("FRONTIERE")
-		for j in frontiere:
-			print("{0} \t cost : {1} \t priority : {2}".format(j.city, j.cost, j.prio))
-		print("HIST")
-		print(*hist, sep="\n")
-		print("")
-		print("")
+		if kwargs.get('verbose', False):
+			print("Went to %s" % city)
+		if kwargs.get('debug', False):
+			print("FRONTIERE")
+			for j in frontiere:
+				print("{0} \t cost : {1} \t priority : {2}".format(j.city, j.cost, j.prio))
+			print("HIST")
+			print(*hist, sep="\n")
+			print("")
 
 
 if __name__ == '__main__':
@@ -126,7 +121,6 @@ if __name__ == '__main__':
 		reader = csv.reader(f, delimiter=" ")
 		for name, x, y in reader:
 			all_cities[name] = City(count, name, int(x), int(y))
-			all_cities[name].add_connection(name, 0)
 			count += 1
 
 	with open(connections) as f:
@@ -139,12 +133,8 @@ if __name__ == '__main__':
 	objective = all_cities['Lisbon']
 	print('From {0} to {1}'.format(start, objective))
 
-	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g1)
+	dest, cost, iter, open, itinerary = a_star(start, objective, h1, g1, verbose=True, debug=False)
 	print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iter, open))
 	print("Go trough :")
 	for info in itinerary:
 		print(" - {0} \t then ".format(info.city))
-
-
-
-
