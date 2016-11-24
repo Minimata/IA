@@ -122,14 +122,14 @@ if __name__ == '__main__':
 	connections = sys.argv[2]
 	all_cities = {}
 
-	with opened(positions, newline='') as f:
+	with open(positions, newline='') as f:
 		count = 0
 		reader = csv.reader(f, delimiter=" ")
 		for name, x, y in reader:
 			all_cities[name] = City(count, name, int(x), int(y))
 			count += 1
 
-	with opened(connections, newline='') as f:
+	with open(connections, newline='') as f:
 		reader = csv.reader(f, delimiter=" ")
 		for src, dst, cost in reader:
 			all_cities[src].add_connection(dst, int(cost))
