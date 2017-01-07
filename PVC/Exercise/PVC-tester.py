@@ -18,7 +18,7 @@ v0.3, hatem Ghorbel, HE-Arc
 # Ces modules doivent être dans le PYTHONPATH; p.ex. dans le répertoire courant
 
 modules = (
-	"MAA09",
+	"RamseyerSerex",
 	# Éventuellement d'autres modules pour comparer plusieurs versions...
 )
 
@@ -49,7 +49,7 @@ outfile = sys.stdout
 verbose = False
 
 # est-ce qu'on veut un affichage graphique?
-gui = False
+gui = True
 
 # PROGRAMME
 # =========
