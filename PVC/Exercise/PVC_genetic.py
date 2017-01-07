@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
-import sys
+import sys, argparse
 
 
 # INIT
@@ -70,3 +70,34 @@ while not end:
 			else:
 				end = True
 				break
+
+
+def ga_solve(file=None, gui=True, maxtime=0):
+	pass
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='PVC Genetic solver')
+	parser.add_argument('--nogui', default=False, action='store_true')
+	parser.add_argument('--maxtime', default=0, type=int)
+	parser.add_argument('filename', default=None)
+	args = parser.parse_args()
+
+	print(args)
+
+	# inputfile = ''
+   # outputfile = ''
+   # try:
+   #    opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+   # except getopt.GetoptError:
+   #    print 'test.py -i <inputfile> -o <outputfile>'
+   #    sys.exit(2)
+   # for opt, arg in opts:
+   #    if opt == '-h':
+   #       print 'test.py -i <inputfile> -o <outputfile>'
+   #       sys.exit()
+   #    elif opt in ("-i", "--ifile"):
+   #       inputfile = arg
+   #    elif opt in ("-o", "--ofile"):
+   #       outputfile = arg
+   # print 'Input file is "', inputfile
+   # print 'Output file is "', outputfile
