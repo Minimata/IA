@@ -2,9 +2,11 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 from collections import namedtuple
 import sys, argparse, csv, math
+import random
 
 
 # CLASS DEFINITIONS
+
 
 class City:
 	def __init__(self, name, pos_x, pos_y):
@@ -15,8 +17,10 @@ class City:
 	def get_pos(self):
 		return (self.x, self.y)
 
+	#def __str__(self):
+	#	return 'city {0} {1} : ({2}, {3})'.format(self.name, self.x, self.y)
 	def __str__(self):
-		return 'city {0} {1} : ({2}, {3})'.format(self.name, self.x, self.y)
+		return 'city {0} {1}'.format(self.name)
 	#
 	# def __eq__(self, other):
 	# 	return self.id == other.id
@@ -103,6 +107,20 @@ def calculate_cost(cities):
 def find_distance(city1, city2):
 	return math.sqrt((city1.x - city2.x) ** 2 + (city1.y - city2.y) ** 2)
 
+def mutate(fellow, nbSwap):
+	for x in range(0,nbSwap):
+		firstRand = random.randint(1, len(fellow.route))
+		secondRand = firstRand
+		while firstRand == secondRand :
+			secondRand = random.randint(1, len(fellow.route))
+
+		temp = fellow.route[firstRand]
+		fellow.route[firstRand] = fellow.route[secondRand]
+		fellow.route[secondRand] = temp
+
+	fellow.cost = calculate_cost(fellow.route)
+	return fellow
+
 
 def ga_solve(file=None, gui=True, maxtime=0):
 
@@ -127,6 +145,13 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				draw(cities)
 
 	adam = init_itinerary(cities)
+	listChild = []
+	listChild.add(adam)
+
+	for x in range(0,9):
+		listChild.add(mutate(adam,1))
+
+	print(listChild)
 
 	return [cost, adam.route]
 
@@ -175,4 +200,3 @@ while not end:
 			else:
 				end = True
 				break
-
