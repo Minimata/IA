@@ -4,8 +4,8 @@ from collections import namedtuple
 from heapq import heappush, heappop
 import sys, argparse, csv, math, random
 
-
 # CLASS DEFINITIONS
+
 
 class City:
 	def __init__(self, name, pos_x, pos_y):
@@ -17,7 +17,28 @@ class City:
 		return (self.x, self.y)
 
 	def __str__(self):
-		return 'city {0} {1} : ({2}, {3})'.format(self.name, self.x, self.y)
+		return 'city {0}'.format(self.name)
+	#
+	# def __eq__(self, other):
+	# 	return self.id == other.id
+	#
+	# def __ne__(self, other):
+	# 	return self.id != other.id
+	#
+	# def __lt__(self, other):
+	# 	return self.id < other.id
+	#
+	# def __le__(self, other):
+	# 	return self.id <= other.id
+	#
+	# def __gt__(self, other):
+	# 	return self.id > other.id
+	#
+	# def __ge__(self, other):
+	# 	return self.id >= other.id
+	#
+	# def __hash__(self):
+	# 	return self.id
 
 
 # METHOD DEFINITIONS
@@ -127,10 +148,6 @@ def natural_selection(pop, num_cities):
 	return [heappop(pop) for _ in range(num_cities)]
 
 
-def mutate(pop, num_cities):
-	pass
-
-
 def calculate_cost(cities):
 	cost = 0
 	for i in range(1, len(cities)):
@@ -152,6 +169,20 @@ def populate(cities):
 	heappush(population, eve)
 
 	return population
+
+def mutate(fellow, nbSwap):
+	for x in range(0,nbSwap):
+		firstRand = random.randint(1, len(fellow.route))
+		secondRand = firstRand
+		while firstRand == secondRand :
+			secondRand = random.randint(1, len(fellow.route))
+
+		temp = fellow.route[firstRand]
+		fellow.route[firstRand] = fellow.route[secondRand]
+		fellow.route[secondRand] = temp
+
+	fellow.cost = calculate_cost(fellow.route)
+	return fellow
 
 
 def ga_solve(file=None, gui=True, maxtime=0):
@@ -176,13 +207,26 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				id_count += 1
 				draw(cities)
 
+	# crossovers and selection
 	num_cities = 2  # because populate still in mockup
 	population = populate(cities)
 	crossover(population, crossover_sequence_size, child_proportion)
-	mutate(population, num_cities)
 	population = natural_selection(population, num_cities)
 
+	#mutations
+	adam = init_itinerary(cities)
+	listChild = []
+	heappush(listChild, adam)
+
+	for x in range(0,9):
+		heappush(listChild, mutate(adam, 1))
+
+	print(listChild)
+
 	return [cost, heappop(population).route]
+
+	return [cost, adam.route]
+
 
 
 # ARGS PARSING
@@ -229,4 +273,3 @@ while not end:
 			else:
 				end = True
 				break
-
