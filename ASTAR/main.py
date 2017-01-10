@@ -139,8 +139,8 @@ if __name__ == '__main__':
 			all_cities[src].add_connection(dst, int(cost))
 			all_cities[dst].add_connection(src, int(cost))
 
-	start = all_cities['Hamburg']
-	objective = all_cities['Amsterdam']
+	start = all_cities['Warsaw']
+	objective = all_cities['Lisbon']
 	print('From {0} to {1}'.format(start, objective))
 
 	'''
@@ -165,8 +165,8 @@ if __name__ == '__main__':
 	complexes et il est important de bien les définir et les choisir en fonction des besoins (itinéraire optimal,
 	performances, cout mémoire, etc.)
 	'''
-	for h in [h0, h1, h2, h3, h4]:
-		dest, cost, iteration, opened, itinerary = a_star(start, objective, h, g1, verbose=False, debug=False)
+	for h in [h4]:
+		dest, cost, iteration, opened, itinerary = a_star(start, objective, h, g1, verbose=True, debug=True)
 		print("Reached {0} with cost {1} in {2} iterations with {3} still open cities".format(dest, cost, iteration, opened))
 		print_itinerary(itinerary)
 
