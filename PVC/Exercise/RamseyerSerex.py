@@ -213,19 +213,8 @@ def ga_solve(file=None, gui=True, maxtime=0):
 	crossover(population, crossover_sequence_size, child_proportion)
 	population = natural_selection(population, num_cities)
 
-	#mutations
-	adam = init_itinerary(cities)
-	listChild = []
-	heappush(listChild, adam)
-
-	for x in range(0,9):
-		heappush(listChild, mutate(adam, 1))
-
-	print(listChild)
-
 	return [cost, heappop(population).route]
 
-	return [cost, adam.route]
 
 
 
