@@ -175,15 +175,15 @@ def populate(cities):
 	population = []
 
 	# interary with simple order from cities
-	eve = child(calculate_cost(cities), cities)
+	eve = child(calculate_cost(cities), list(cities))
 	heappush(population, eve)
 
 	# interary --> the next city is the colsest
-	adam = init_itinerary(cities)
+	adam = init_itinerary(list(cities))
 	heappush(population, adam)
 
 	# and finnaly some random fellow
-	for i in range (0,len(cities)-2):
+	for _ in range (0,len(cities)-2):
 		heappush(population, init_rand_itinerary(cities))
 
 	return population
