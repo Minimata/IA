@@ -94,6 +94,17 @@ def init_itinerary(all_cities):
 
 	return child(cost, result)
 
+def init_rand_itinerary(all_cities):
+	result = []
+	cities = list(all_cities)  # copy to let base list untouched
+	result.append(cities.pop(0))
+	while cities:
+		i = random.randint(0, len(cities)-1)
+		result.append(cities.pop(i))
+
+	cost = calculate_cost(result)
+	return child(cost, result)
+
 
 def crossover(pop, sequence_proportion, child_proportion):
 	mom = heappop(pop)
@@ -161,12 +172,19 @@ def find_distance(city1, city2):
 
 ### THIS IS A MOCKUP
 def populate(cities):
-	eve = child(calculate_cost(cities), cities)
-	adam = init_itinerary(cities)
-
 	population = []
-	heappush(population, adam)
+
+	# interary with simple order from cities
+	eve = child(calculate_cost(cities), cities)
 	heappush(population, eve)
+
+	# interary --> the next city is the colsest
+	adam = init_itinerary(cities)
+	heappush(population, adam)
+
+	# and finnaly some random fellow
+	for i in range (0,len(cities)-2):
+		heappush(population, init_rand_itinerary(cities))
 
 	return population
 
