@@ -196,15 +196,16 @@ def mutate(population, nbSwap, proportion):
 
 	nbToMute = int(len(population)*proportion)
 
-	for _ in range(0,nbToMute):
+	for _ in range(0, nbToMute):
 		rand = random.randint(0, len(population)-1)
-		heappush(mutateOne(population[rand],nbSwap))
+		heappush(population, mutateOne(population[rand], nbSwap))
 
 	return population
 
+
 def mutateOne(fellow_in, nbSwap):
 	for x in range(0,nbSwap):
-		fellow = child(fellow_in.cost, list(fellow.route))
+		fellow = child(fellow_in.cost, list(fellow_in.route))
 		firstRand = random.randint(1, len(fellow.route)-1)
 		secondRand = firstRand
 		while firstRand == secondRand :
@@ -214,8 +215,7 @@ def mutateOne(fellow_in, nbSwap):
 		fellow.route[firstRand] = fellow.route[secondRand]
 		fellow.route[secondRand] = temp
 
-	fellow.cost = calculate_cost(fellow.route)
-	return fellow
+	return child(calculate_cost(fellow.route), fellow.route)
 
 
 def ga_solve(file=None, gui=True, maxtime=0):
@@ -243,9 +243,9 @@ def ga_solve(file=None, gui=True, maxtime=0):
 	population = populate(cities)
 	for _ in range(0, 100):
 		display_population(population)
-		crossover(population, crossover_sequence_size, child_proportion)
+		crossover(population, crossover_sequence_size, crossover_child_proportion)
 		display_population(population)
-		# mutate
+		mutate(population,mutation_num_swap, mutation_proportion)
 		population = natural_selection(population, num_cities)
 		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
 
@@ -277,7 +277,9 @@ nogui, maxtime, filename = [vars(args).get(k) for k in ['nogui', 'maxtime', 'fil
 # INIT
 child = namedtuple('child', 'cost route')
 crossover_sequence_size = 0.5
-child_proportion = 0.1
+crossover_child_proportion = 0.1
+mutation_num_swap = 1
+mutation_proportion = 1
 
 screen_x = screen_y = 500
 
