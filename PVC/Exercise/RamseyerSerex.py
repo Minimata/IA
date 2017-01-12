@@ -2,14 +2,16 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 from collections import namedtuple
 from heapq import heappush, heappop
+from time import sleep
 import sys, argparse, csv, math, random
 
 # CLASS DEFINITIONS
 
 
 class City:
-	def __init__(self, name, pos_x, pos_y):
+	def __init__(self, id, name, pos_x, pos_y):
 		self.name = name
+		self.id = id
 		self.x = pos_x
 		self.y = pos_y
 
@@ -18,27 +20,27 @@ class City:
 
 	def __str__(self):
 		return 'city {0}'.format(self.name)
-	#
-	# def __eq__(self, other):
-	# 	return self.id == other.id
-	#
-	# def __ne__(self, other):
-	# 	return self.id != other.id
-	#
-	# def __lt__(self, other):
-	# 	return self.id < other.id
-	#
-	# def __le__(self, other):
-	# 	return self.id <= other.id
-	#
-	# def __gt__(self, other):
-	# 	return self.id > other.id
-	#
-	# def __ge__(self, other):
-	# 	return self.id >= other.id
-	#
-	# def __hash__(self):
-	# 	return self.id
+
+	def __eq__(self, other):
+		return self.id == other.id
+
+	def __ne__(self, other):
+		return self.id != other.id
+
+	def __lt__(self, other):
+		return self.id < other.id
+
+	def __le__(self, other):
+		return self.id <= other.id
+
+	def __gt__(self, other):
+		return self.id > other.id
+
+	def __ge__(self, other):
+		return self.id >= other.id
+
+	def __hash__(self):
+		return self.id
 
 
 # METHOD DEFINITIONS
@@ -70,8 +72,10 @@ def parse_filename(filename):
 	if filename:
 		with open(filename, newline='') as f:
 			reader = csv.reader(f, delimiter=" ")
+			count = 0
 			for name, x, y in reader:
-				cities.append(City(name, int(x), int(y)))
+				cities.append(City(name, count, int(x), int(y)))
+				count += 1
 	return cities
 
 
@@ -94,19 +98,9 @@ def init_itinerary(all_cities):
 
 	return child(cost, result)
 
-def init_rand_itinerary(all_cities):
-	result = []
-	cities = list(all_cities)  # copy to let base list untouched
-	result.append(cities.pop(0))
-	while cities:
-		i = random.randint(0, len(cities)-1)
-		result.append(cities.pop(i))
-
-	cost = calculate_cost(result)
-	return child(cost, result)
-
 
 def crossover(pop, sequence_proportion, child_proportion):
+	random.seed()
 	mom = heappop(pop)
 	dad = heappop(pop)
 	num_cities = len(mom.route)
@@ -170,29 +164,44 @@ def find_distance(city1, city2):
 	return abs(city1.x - city2.x) + abs(city1.y - city2.y)  # Manhattan, because performance
 
 
-### THIS IS A MOCKUP
 def populate(cities):
 	population = []
 
-	# interary with simple order from cities
+	# itinerary with simple order from cities
 	eve = child(calculate_cost(cities), list(cities))
 	heappush(population, eve)
 
-	# interary --> the next city is the colsest
-	adam = init_itinerary(list(cities))
-	heappush(population, adam)
+	# itinerary --> the next city is the closest --> greedy algorithm
+	# adam = init_itinerary(list(cities))
+	# heappush(population, adam)
 
-	# and finnaly some random fellow
-	for _ in range (0,len(cities)-2):
+	# and finally some random fellow
+	for _ in range(0, len(cities) - 1):
 		heappush(population, init_rand_itinerary(cities))
 
 	return population
 
+
+def init_rand_itinerary(all_cities):
+	random.seed()
+	result = []
+	cities = list(all_cities)  # copy to let base list untouched
+	result.append(cities.pop(0))
+	while cities:
+		i = random.randint(0, len(cities)-1)
+		result.append(cities.pop(i))
+
+	cost = calculate_cost(result)
+	return child(cost, result)
+
+
 def mutate(fellow, nbSwap):
+
+	random.seed()
 	for x in range(0,nbSwap):
 		firstRand = random.randint(1, len(fellow.route))
 		secondRand = firstRand
-		while firstRand == secondRand :
+		while firstRand == secondRand:
 			secondRand = random.randint(1, len(fellow.route))
 
 		temp = fellow.route[firstRand]
@@ -225,15 +234,30 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				id_count += 1
 				draw(cities)
 
-	# crossovers and selection
-	num_cities = 2  # because populate still in mockup
 	population = populate(cities)
-	crossover(population, crossover_sequence_size, child_proportion)
-	population = natural_selection(population, num_cities)
-
+	for _ in range(0, 100):
+		display_population(population)
+		crossover(population, crossover_sequence_size, child_proportion)
+		display_population(population)
+		# mutate
+		population = natural_selection(population, num_cities)
+		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
+		sleep(0.1)
 	return [cost, heappop(population).route]
 
 
+def display_population(pop):
+	print("")
+	print("Population")
+	population = list(pop)
+	count = 0
+	while population:
+		count += 1
+		child = heappop(population)
+		print("{0} : cost {1}".format(count, child.cost))
+		# print("route :")
+		# for city in child.route:
+		# 	print("\t id : {0}".format(city.id))
 
 
 # ARGS PARSING
