@@ -186,14 +186,27 @@ def populate(cities):
 	for _ in range (0,len(cities)-2):
 		heappush(population, init_rand_itinerary(cities))
 
+	print(population)
+
 	return population
 
-def mutate(fellow, nbSwap):
+def mutate(population, nbSwap, proportion):
+
+	nbToMute = int(len(population)*proportion)
+
+	for x in range(0,nbToMute):
+		rand = random.randint(0, len(population)-1)
+		heappush(mutateOne(population[rand],nbSwap))
+
+	return Population
+
+def mutateOne(fellow, nbSwap):
 	for x in range(0,nbSwap):
-		firstRand = random.randint(1, len(fellow.route))
+		#fellow = deepcopy(fellow)
+		firstRand = random.randint(1, len(fellow.route)-1)
 		secondRand = firstRand
 		while firstRand == secondRand :
-			secondRand = random.randint(1, len(fellow.route))
+			secondRand = random.randint(1, len(fellow.route)-1)
 
 		temp = fellow.route[firstRand]
 		fellow.route[firstRand] = fellow.route[secondRand]
