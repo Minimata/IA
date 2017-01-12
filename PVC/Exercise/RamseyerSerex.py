@@ -100,7 +100,6 @@ def init_itinerary(all_cities):
 
 
 def crossover(pop, sequence_proportion, child_proportion):
-	random.seed()
 	mom = heappop(pop)
 	dad = heappop(pop)
 	num_cities = len(mom.route)
@@ -183,7 +182,6 @@ def populate(cities):
 
 
 def init_rand_itinerary(all_cities):
-	random.seed()
 	result = []
 	cities = list(all_cities)  # copy to let base list untouched
 	result.append(cities.pop(0))
@@ -196,8 +194,6 @@ def init_rand_itinerary(all_cities):
 
 
 def mutate(fellow, nbSwap):
-
-	random.seed()
 	for x in range(0,nbSwap):
 		firstRand = random.randint(1, len(fellow.route))
 		secondRand = firstRand
@@ -213,7 +209,6 @@ def mutate(fellow, nbSwap):
 
 
 def ga_solve(file=None, gui=True, maxtime=0):
-
 	cost = 0
 
 	cities = parse_filename(file)
@@ -236,14 +231,13 @@ def ga_solve(file=None, gui=True, maxtime=0):
 
 	population = populate(cities)
 	for _ in range(0, 100):
-		display_population(population)
 		crossover(population, crossover_sequence_size, child_proportion)
-		display_population(population)
 		# mutate
 		population = natural_selection(population, num_cities)
 		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
-		sleep(0.1)
-	return [cost, heappop(population).route]
+		# sleep(0.1)
+	chosen_one = heappop(population)
+	return [chosen_one.cost, chosen_one.route]
 
 
 def display_population(pop):
