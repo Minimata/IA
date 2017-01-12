@@ -8,8 +8,9 @@ import sys, argparse, csv, math, random
 
 
 class City:
-	def __init__(self, name, pos_x, pos_y):
+	def __init__(self, name, id, pos_x, pos_y):
 		self.name = name
+		self.id = id
 		self.x = pos_x
 		self.y = pos_y
 
@@ -18,27 +19,27 @@ class City:
 
 	def __str__(self):
 		return 'city {0}'.format(self.name)
-	#
-	# def __eq__(self, other):
-	# 	return self.id == other.id
-	#
-	# def __ne__(self, other):
-	# 	return self.id != other.id
-	#
-	# def __lt__(self, other):
-	# 	return self.id < other.id
-	#
-	# def __le__(self, other):
-	# 	return self.id <= other.id
-	#
-	# def __gt__(self, other):
-	# 	return self.id > other.id
-	#
-	# def __ge__(self, other):
-	# 	return self.id >= other.id
-	#
-	# def __hash__(self):
-	# 	return self.id
+
+	def __eq__(self, other):
+		return self.id == other.id
+
+	def __ne__(self, other):
+		return self.id != other.id
+
+	def __lt__(self, other):
+		return self.id < other.id
+
+	def __le__(self, other):
+		return self.id <= other.id
+
+	def __gt__(self, other):
+		return self.id > other.id
+
+	def __ge__(self, other):
+		return self.id >= other.id
+
+	def __hash__(self):
+		return self.id
 
 
 # METHOD DEFINITIONS
@@ -70,8 +71,10 @@ def parse_filename(filename):
 	if filename:
 		with open(filename, newline='') as f:
 			reader = csv.reader(f, delimiter=" ")
+			count = 0
 			for name, x, y in reader:
-				cities.append(City(name, int(x), int(y)))
+				cities.append(City(name, count, int(x), int(y)))
+				count += 1
 	return cities
 
 
@@ -170,7 +173,6 @@ def find_distance(city1, city2):
 	return abs(city1.x - city2.x) + abs(city1.y - city2.y)  # Manhattan, because performance
 
 
-### THIS IS A MOCKUP
 def populate(cities):
 	population = []
 
@@ -198,7 +200,7 @@ def mutate(population, nbSwap, proportion):
 		rand = random.randint(0, len(population)-1)
 		heappush(mutateOne(population[rand],nbSwap))
 
-	return Population
+	return population
 
 def mutateOne(fellow_in, nbSwap):
 	for x in range(0,nbSwap):
@@ -238,16 +240,30 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				id_count += 1
 				draw(cities)
 
-	# crossovers and selection
-	num_cities = 2  # because populate still in mockup
 	population = populate(cities)
-	crossover(population, crossover_sequence_size, child_proportion)
-	population = natural_selection(population, num_cities)
+	for _ in range(0, 100):
+		display_population(population)
+		crossover(population, crossover_sequence_size, child_proportion)
+		display_population(population)
+		# mutate
+		population = natural_selection(population, num_cities)
+		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
 
 	return [cost, heappop(population).route]
 
 
-
+def display_population(pop):
+	print("")
+	print("Population")
+	population = list(pop)
+	count = 0
+	while population:
+		count += 1
+		child = heappop(population)
+		print("{0} : cost {1}".format(count, child.cost))
+		# print("route :")
+		# for city in child.route:
+		# 	print("\t id : {0}".format(city.id))
 
 # ARGS PARSING
 parser = argparse.ArgumentParser(description='PVC Genetic solver')
