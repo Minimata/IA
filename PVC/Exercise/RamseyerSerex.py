@@ -194,15 +194,15 @@ def mutate(population, nbSwap, proportion):
 
 	nbToMute = int(len(population)*proportion)
 
-	for x in range(0,nbToMute):
+	for _ in range(0,nbToMute):
 		rand = random.randint(0, len(population)-1)
 		heappush(mutateOne(population[rand],nbSwap))
 
 	return Population
 
-def mutateOne(fellow, nbSwap):
+def mutateOne(fellow_in, nbSwap):
 	for x in range(0,nbSwap):
-		#fellow = deepcopy(fellow)
+		fellow = child(fellow_in.cost, list(fellow.route))
 		firstRand = random.randint(1, len(fellow.route)-1)
 		secondRand = firstRand
 		while firstRand == secondRand :
