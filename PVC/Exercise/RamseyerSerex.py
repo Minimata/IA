@@ -112,9 +112,25 @@ def init_rand_itinerary(all_cities):
 	return child(cost, result)
 
 
-def crossover(pop, sequence_proportion, child_proportion):
+def crossover(pop, sequence_proportion, child_proportion, num_parents_proportion):
+	num_people = len(pop)
+	# the elite
 	mom = heappop(pop)
 	dad = heappop(pop)
+	crossover_one(pop, sequence_proportion, child_proportion, mom, dad)
+	# keeping the parents for next selection
+	heappush(pop, mom)
+	heappush(pop, dad)
+
+	# some pseudo random parents
+	num_parents = int(num_people * num_parents_proportion)
+	for _ in range(num_parents):
+		mom = pop[random.randint(0, num_people - 1)]
+		dad = pop[random.randint(0, num_people - 1)]
+		crossover_one(pop, sequence_proportion, child_proportion, mom, dad)
+
+
+def crossover_one(pop, sequence_proportion, child_proportion, mom, dad):
 	num_cities = len(mom.route)
 	num_children = int(child_proportion * num_cities)
 	sequence_size = int(sequence_proportion * num_cities)
@@ -138,9 +154,6 @@ def crossover(pop, sequence_proportion, child_proportion):
 		heappush(pop, child(cost1, child1))
 		heappush(pop, child(cost2, child2))
 
-	# keeping the parents for next selection
-	heappush(pop, mom)
-	heappush(pop, dad)
 
 
 def fill_sequence(parent, begin, end):
@@ -197,7 +210,7 @@ def populate(cities):
 
 	# interary --> the next city is the colsest
 	adam = init_itinerary(list(cities))
-	heappush(population, adam)
+	# heappush(population, adam)
 
 	# and finnaly some random fellow
 	for _ in range(0, len(cities) - 2):
@@ -205,30 +218,32 @@ def populate(cities):
 
 	return population
 
-def mutate(population, nbSwap, proportion):
 
-	nbToMute = int(len(population)*proportion)
+def mutate(population, swap_proportion, proportion):
+	nb_to_mute = int(len(population)*proportion)
+	sequ_swap_size = int(len(population[0].route) * swap_proportion / 2)
 
-	for _ in range(0, nbToMute):
+	for _ in range(0, nb_to_mute):
 		rand = random.randint(0, len(population)-1)
-		heappush(population, mutateOne(population[rand], nbSwap))
+		heappush(population, mutateOne(population[rand], sequ_swap_size))
 
 	return population
 
 
-def mutateOne(fellow_in, nbSwap):
-	for x in range(0,nbSwap):
-		fellow = child(fellow_in.cost, list(fellow_in.route))
-		firstRand = random.randint(1, len(fellow.route)-1)
-		secondRand = firstRand
-		while firstRand == secondRand :
-			secondRand = random.randint(1, len(fellow.route)-1)
+def mutateOne(fellow_in, sequence_size_swap):
+	route = list(fellow_in.route)
+	idx_begin1 = random.randint(0, len(route) / 2 - sequence_size_swap - 1)
+	idx_begin2 = random.randint(len(route) / 2, len(route) - sequence_size_swap - 1)
+	idx_end1 = idx_begin1 + sequence_size_swap
+	idx_end2 = idx_begin2 + sequence_size_swap
 
-		temp = fellow.route[firstRand]
-		fellow.route[firstRand] = fellow.route[secondRand]
-		fellow.route[secondRand] = temp
+	sub_list1 = route[idx_begin1:idx_end1 + 1]
+	sub_list2 = route[idx_begin2:idx_end2 + 1]
+	sub_list1, sub_list2 = sub_list2, sub_list1
+	route[idx_begin1:idx_end1 + 1] = sub_list1
+	route[idx_begin2:idx_end2 + 1] = sub_list2
 
-	return child(calculate_cost(fellow.route), fellow.route)
+	return child(calculate_cost(route), route)
 
 
 def ga_solve(file=None, gui=True, maxtime=0):
@@ -255,7 +270,7 @@ def ga_solve(file=None, gui=True, maxtime=0):
 	population = populate(cities)
 	for i in range(0, 1000):
 		print(i)
-		crossover(population, crossover_sequence_size, crossover_child_proportion)
+		crossover(population, crossover_sequence_size, crossover_child_proportion, num_parents_proportion)
 		mutate(population, mutation_num_swap, mutation_proportion)
 		population = natural_selection(population, num_cities)
 		draw(cities)
@@ -292,8 +307,9 @@ nogui, maxtime, filename = [vars(args).get(k) for k in ['nogui', 'maxtime', 'fil
 child = namedtuple('child', 'cost route')
 crossover_sequence_size = 0.5
 crossover_child_proportion = 0.1
-mutation_num_swap = 50
+mutation_num_swap = 0.2
 mutation_proportion = 1
+num_parents_proportion = 0.02
 
 screen_x = screen_y = 500
 
