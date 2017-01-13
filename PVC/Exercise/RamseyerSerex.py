@@ -182,13 +182,13 @@ def populate(cities):
 
 	# interary --> the next city is the colsest
 	adam = init_itinerary(list(cities))
-	heappush(population, adam)
+	#heappush(population, adam)
 
 	# and finnaly some random fellow
 	for _ in range (0,len(cities)-2):
 		heappush(population, init_rand_itinerary(cities))
 
-	print(population)
+	#print(population)
 
 	return population
 
@@ -229,6 +229,7 @@ def ga_solve(file=None, gui=True, maxtime=0):
 	collecting = True
 	id_count = 0
 	while collecting and not file:
+		cpt = 0
 		for event in pygame.event.get():
 			if event.type == QUIT:
 				sys.exit(0)
@@ -236,15 +237,18 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				collecting = False
 			elif event.type == MOUSEBUTTONDOWN:
 				pos = pygame.mouse.get_pos()
-				cities.append(City(id_count, pos[0], pos[1]))
+				cpt+=1
+				cities.append(City(id_count, cpt , pos[0], pos[1]))
 				id_count += 1
 				draw(cities)
 
 	population = populate(cities)
-	for _ in range(0, 100):
-		display_population(population)
+	for _ in range(0, 100000000000):
+		#display_population(population)
+		# if len(cities) != 20:
+		# 	print('fuck')
 		crossover(population, crossover_sequence_size, crossover_child_proportion)
-		display_population(population)
+		#display_population(population)
 		mutate(population,mutation_num_swap, mutation_proportion)
 		population = natural_selection(population, num_cities)
 		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
