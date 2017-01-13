@@ -197,10 +197,10 @@ def populate(cities):
 
 	# interary --> the next city is the colsest
 	adam = init_itinerary(list(cities))
-	# heappush(population, adam)
+	heappush(population, adam)
 
 	# and finnaly some random fellow
-	for _ in range(0, len(cities) - 1):
+	for _ in range(0, len(cities) - 2):
 		heappush(population, init_rand_itinerary(cities))
 
 	return population
