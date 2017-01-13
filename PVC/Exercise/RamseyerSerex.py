@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 from collections import namedtuple
 from heapq import heappush, heappop
+from time import sleep
 import sys, argparse, csv, math, random
 
 # CLASS DEFINITIONS
@@ -43,13 +44,14 @@ class City:
 
 
 # METHOD DEFINITIONS
-def draw(positions):
+def draw(positions, **kwargs):
 	screen.fill(0)
 	for pos in positions:
 		pygame.draw.circle(screen, city_color, pos.get_pos(), city_radius)
-	text = font.render("Nombre: %i" % len(positions), True, font_color)
-	textRect = text.get_rect()
-	screen.blit(text, textRect)
+	if kwargs.get('verbose', False):
+		text = font.render("Nombre: %i" % len(positions), True, font_color)
+		textRect = text.get_rect()
+		screen.blit(text, textRect)
 	pygame.display.flip()
 
 
@@ -58,7 +60,7 @@ def draw_itinerary(text, cities):
 	for city in cities:
 		cities_pos.append(city.get_pos())
 
-	screen.fill(0)
+	# screen.fill(0)
 	pygame.draw.lines(screen, city_color, True, cities_pos)
 	title = font.render(text, True, font_color)
 	textRect = title.get_rect()
@@ -87,7 +89,7 @@ def init_itinerary(all_cities):
 		min = 0
 		dist = math.inf
 		for i, city in enumerate(cities):
-			tmp = find_distance(result[-1], city)
+			tmp = euclidian(result[-1], city)
 			if tmp < dist:
 				dist = tmp
 				min = i
@@ -96,6 +98,7 @@ def init_itinerary(all_cities):
 	cost = calculate_cost(result)
 
 	return child(cost, result)
+
 
 def init_rand_itinerary(all_cities):
 	result = []
@@ -118,17 +121,16 @@ def crossover(pop, sequence_proportion, child_proportion):
 	begin = random.randint(0, num_cities - sequence_size - 1)
 	end = begin + sequence_size
 
-	# dict is a bit overkill here i think, but not sure how to do it without creating whole for loops
-	sequ1 = {i: mom.route[i] for i in range(begin, end)}
-	sequ2 = {i: dad.route[i] for i in range(begin, end)}
+	sequ1 = fill_sequence(mom, begin, end)
+	sequ2 = fill_sequence(dad, begin, end)
 
-	for i in range(0, num_children):
+	for i in range(num_children):
 		child1 = list(mom.route)
 		child2 = list(dad.route)
 		empty_idx1 = []
 		empty_idx2 = []
-		prepare_child(child1, mom.route, sequ2, empty_idx1)
-		prepare_child(child2, dad.route, sequ1, empty_idx2)
+		prepare_child(child1, mom.route, sequ2, empty_idx1, begin, end)
+		prepare_child(child2, dad.route, sequ1, empty_idx2, begin, end)
 		insert_sequence(child1, sequ2, empty_idx1, begin, end)
 		insert_sequence(child2, sequ1, empty_idx2, begin, end)
 		cost1 = calculate_cost(child1)
@@ -141,19 +143,29 @@ def crossover(pop, sequence_proportion, child_proportion):
 	heappush(pop, dad)
 
 
+def fill_sequence(parent, begin, end):
+	sequ = []
+	for i in range(begin, end):
+		city = parent.route[i]
+		sequ.append(city)
+	return sequ
+
+
 def insert_sequence(child, sequ, empty_idx, begin, end):
 	for i in range(begin, end):
 		if child[i] is not None:
 			next_empty_idx = empty_idx.pop()
 			child[i], child[next_empty_idx] = child[next_empty_idx], child[i]  # swap
-		child[i] = sequ[i]
+
+		child[i] = sequ[i - begin]
 
 
-def prepare_child(child, parent, sequence, empty_idx):
+def prepare_child(child, parent, sequence, empty_idx, begin, end):
 	for i, city in enumerate(parent):
-		if i in sequence:
+		if city in sequence:
 			child[i] = None
-			empty_idx.append(i)
+			if not begin <= i < end:
+				empty_idx.append(i)
 		else:
 			child[i] = city
 
@@ -165,12 +177,15 @@ def natural_selection(pop, num_cities):
 def calculate_cost(cities):
 	cost = 0
 	for i in range(1, len(cities)):
-		cost += find_distance(cities[i - 1], cities[i])
+		cost += euclidian(cities[i - 1], cities[i])
 	return cost
 
 
-def find_distance(city1, city2):
+def manhattan(city1, city2):
 	return abs(city1.x - city2.x) + abs(city1.y - city2.y)  # Manhattan, because performance
+
+def euclidian(city1, city2):
+	return math.sqrt((city1.x - city2.x) ** 2 + (city1.y - city2.y) ** 2)
 
 
 def populate(cities):
@@ -182,13 +197,11 @@ def populate(cities):
 
 	# interary --> the next city is the colsest
 	adam = init_itinerary(list(cities))
-	#heappush(population, adam)
+	# heappush(population, adam)
 
 	# and finnaly some random fellow
-	for _ in range (0,len(cities)-2):
+	for _ in range(0, len(cities) - 1):
 		heappush(population, init_rand_itinerary(cities))
-
-	#print(population)
 
 	return population
 
@@ -219,9 +232,6 @@ def mutateOne(fellow_in, nbSwap):
 
 
 def ga_solve(file=None, gui=True, maxtime=0):
-
-	cost = 0
-
 	cities = parse_filename(file)
 	num_cities = len(cities)
 	draw(cities)
@@ -240,20 +250,20 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				cpt+=1
 				cities.append(City(id_count, cpt , pos[0], pos[1]))
 				id_count += 1
-				draw(cities)
+				draw(cities, verbose=True)
 
 	population = populate(cities)
-	for _ in range(0, 100000000000):
-		#display_population(population)
-		# if len(cities) != 20:
-		# 	print('fuck')
+	for i in range(0, 1000):
+		print(i)
 		crossover(population, crossover_sequence_size, crossover_child_proportion)
-		#display_population(population)
-		mutate(population,mutation_num_swap, mutation_proportion)
+		mutate(population, mutation_num_swap, mutation_proportion)
 		population = natural_selection(population, num_cities)
+		draw(cities)
 		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
 
-	return [cost, heappop(population).route]
+	chosen_one = heappop(population)
+
+	return [chosen_one.cost, chosen_one.route]
 
 
 def display_population(pop):
@@ -282,7 +292,7 @@ nogui, maxtime, filename = [vars(args).get(k) for k in ['nogui', 'maxtime', 'fil
 child = namedtuple('child', 'cost route')
 crossover_sequence_size = 0.5
 crossover_child_proportion = 0.1
-mutation_num_swap = 1
+mutation_num_swap = 50
 mutation_proportion = 1
 
 screen_x = screen_y = 500
