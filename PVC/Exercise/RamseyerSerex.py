@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import KEYDOWN, QUIT, MOUSEBUTTONDOWN, K_RETURN, K_ESCAPE
 from collections import namedtuple
 from heapq import heappush, heappop
+import time
 from time import sleep
 import sys, argparse, csv, math, random
 
@@ -267,14 +268,31 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				id_count += 1
 				draw(cities, verbose=True)
 
+	cost_tminus1 = 0;
+	cpt = 0;
+
+	t0 = time.clock()
 	population = populate(cities)
-	for i in range(0, 1000):
-		print(i)
+
+
+	# if maxtime is equals 0 the counter will stop the loop when it will reach max_no_coste_changement
+	# othwise the timer will stop it
+	# the counter is incremented when there is no cost changement betwen to iteration of the loop
+	while (maxtime != 0 and time.clock() - t0 <= maxtime) or (maxtime == 0 and cpt <= max_no_coste_changement) :
+		#print(time.clock() - t0, "seconds process time")
+		#print(cpt, " ", cost_tminus1)
 		crossover(population, crossover_sequence_size, crossover_child_proportion, num_parents_proportion)
 		mutate(population, mutation_num_swap, mutation_proportion)
 		population = natural_selection(population, num_cities)
-		draw(cities)
-		draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
+
+		if cost_tminus1 == population[0].cost :
+			cpt+=1
+
+		cost_tminus1 = population[0].cost
+
+		if gui :
+			draw(cities)
+			draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
 
 	chosen_one = heappop(population)
 
@@ -310,6 +328,7 @@ crossover_child_proportion = 0.1
 mutation_num_swap = 0.2
 mutation_proportion = 1
 num_parents_proportion = 0.02
+max_no_coste_changement = 3000
 
 screen_x = screen_y = 500
 
