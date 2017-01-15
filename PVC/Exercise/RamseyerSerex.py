@@ -82,6 +82,14 @@ def parse_filename(filename):
 
 
 def init_itinerary(all_cities):
+	"""
+	Cette méthode permet d'initialiser un individu de la population d'origine
+	à l'aide d'un algorithme glouton.
+	Cet algo va parcrouir les villes en rejoignant toujours la ville la plus proche de son lieu actuel.
+	En comparaison du reste de l'algorithme, elle est assez performante pour ne pas pas impacter sur
+	la performances globale du programme. Elle donne également une bonne base pour débuter la partie génétique.
+	"""
+
 	result = []
 
 	cities = list(all_cities)  # copy to let base list untouched
@@ -102,6 +110,9 @@ def init_itinerary(all_cities):
 
 
 def init_rand_itinerary(all_cities):
+	"""
+	Cette méthode génère un individu aléatoire pour la première population.
+	"""
 	result = []
 	cities = list(all_cities)  # copy to let base list untouched
 	result.append(cities.pop(0))
@@ -114,6 +125,17 @@ def init_rand_itinerary(all_cities):
 
 
 def crossover(pop, sequence_proportion, child_proportion, num_parents_proportion):
+	"""
+	Cette méthode va effecteur des crossover sur toute la population, par plage successive.
+	Elle commence par faire le crossover des individus les plus performants, puis va parcourir la population restante
+	par pas successifs (le nombre de pas total étant défini par une proportion de la population totale) pour faire
+	des crossovers sur toute la population.
+
+	Ceci permet de toujours promouvoir les meilleurs parents mais cultive également un bon échantillon de la population
+	totale, évitant de tomber trop facilement dans des minimums locaux.
+
+	Tous les enfants comme les parents sont gardés dans la population pour être ensuite mutés et resélectionné.
+	"""
 	num_people = len(pop)
 	# the elite
 	mom = heappop(pop)
@@ -132,6 +154,12 @@ def crossover(pop, sequence_proportion, child_proportion, num_parents_proportion
 
 
 def crossover_one(pop, sequence_proportion, child_proportion, mom, dad):
+	"""
+	La méthode de crossover est la méthode OX.
+	On sélectionne une séquence au hasard dans le code génétique des parents et on les swap entre les deux parents.
+	En évitant la redondance (avec les méthodes prepare_child et fill_sequence), on obtient finalement deux enfant
+	distincts pour chaque crossover.
+	"""
 	num_cities = len(mom.route)
 	num_children = int(child_proportion * num_cities)
 	sequence_size = int(sequence_proportion * num_cities)
@@ -185,6 +213,9 @@ def prepare_child(child, parent, sequence, empty_idx, begin, end):
 
 
 def natural_selection(pop, num_cities):
+	"""
+	Pour la sélection, on ne prend que les N meilleurs individus pour N villes.
+	"""
 	return [heappop(pop) for _ in range(num_cities)]
 
 
@@ -209,11 +240,11 @@ def populate(cities):
 	eve = child(calculate_cost(cities), list(cities))
 	heappush(population, eve)
 
-	# interary --> the next city is the colsest
+	# interary --> the next city is the closest
 	adam = init_itinerary(list(cities))
-	# heappush(population, adam)
+	heappush(population, adam)
 
-	# and finnaly some random fellow
+	# and finally some random fellows
 	for _ in range(0, len(cities) - 2):
 		heappush(population, init_rand_itinerary(cities))
 
@@ -221,6 +252,10 @@ def populate(cities):
 
 
 def mutate(population, swap_proportion, proportion):
+	"""
+	Pour la mutation, on va sélectionner de manière random un certain pourcentage de la population pour la faire muter.
+	On duplique un individu avant de le muter, et on garde les deux individus pour la prochaine sélection.
+	"""
 	nb_to_mute = int(len(population)*proportion)
 	sequ_swap_size = int(len(population[0].route) * swap_proportion / 2)
 
@@ -232,9 +267,15 @@ def mutate(population, swap_proportion, proportion):
 
 
 def mutateOne(fellow_in, sequence_size_swap):
+	"""
+	Pour la mutation, on sélectionne une séquence aléatoire de taille aléatoire comprise entre 0 et la moitié de la
+	longueur d'un individu, dans la première partie de l'individu. On échange ensuite cette séquence avec une autre
+	séquence, de même taille, sur la deuxième moitié de l'individu.
+	On swap donc des portions de routes, et pas que des villes isolées.
+	"""
 	route = list(fellow_in.route)
-	idx_begin1 = random.randint(0, len(route) / 2 - sequence_size_swap - 1)
-	idx_begin2 = random.randint(len(route) / 2, len(route) - sequence_size_swap - 1)
+	idx_begin1 = random.randint(0, int(len(route) / 2 - sequence_size_swap - 1))
+	idx_begin2 = random.randint(int(len(route) / 2), int(len(route) - sequence_size_swap - 1))
 	idx_end1 = idx_begin1 + sequence_size_swap
 	idx_end2 = idx_begin2 + sequence_size_swap
 
@@ -249,13 +290,12 @@ def mutateOne(fellow_in, sequence_size_swap):
 
 def ga_solve(file=None, gui=True, maxtime=0):
 	cities = parse_filename(file)
-	num_cities = len(cities)
-	draw(cities)
+	if gui:
+		draw(cities)
 
 	collecting = True
 	id_count = 0
 	while collecting and not file:
-		cpt = 0
 		for event in pygame.event.get():
 			if event.type == QUIT:
 				sys.exit(0)
@@ -263,39 +303,37 @@ def ga_solve(file=None, gui=True, maxtime=0):
 				collecting = False
 			elif event.type == MOUSEBUTTONDOWN:
 				pos = pygame.mouse.get_pos()
-				cpt+=1
-				cities.append(City(id_count, cpt , pos[0], pos[1]))
+				cities.append(City(id_count, id_count, pos[0], pos[1]))
 				id_count += 1
 				draw(cities, verbose=True)
 
-	cost_tminus1 = 0;
-	cpt = 0;
+	cost_old = 0
+	cpt = 0
 
+	num_cities = len(cities)
 	t0 = time.clock()
+
 	population = populate(cities)
 
-
-	# if maxtime is equals 0 the counter will stop the loop when it will reach max_no_coste_changement
-	# othwise the timer will stop it
-	# the counter is incremented when there is no cost changement betwen to iteration of the loop
-	while (maxtime != 0 and time.clock() - t0 <= maxtime) or (maxtime == 0 and cpt <= max_no_coste_changement) :
-		#print(time.clock() - t0, "seconds process time")
-		#print(cpt, " ", cost_tminus1)
+	# if maxtime equals 0 the counter will stop the loop when it will reach max_no_cost_change
+	# otherwise the timer will stop it
+	# the counter is incremented when there is no cost change between two iterations of the loop
+	while (maxtime != 0 and time.clock() - t0 <= maxtime) or (maxtime == 0 and cpt <= max_no_cost_change):
 		crossover(population, crossover_sequence_size, crossover_child_proportion, num_parents_proportion)
 		mutate(population, mutation_num_swap, mutation_proportion)
 		population = natural_selection(population, num_cities)
 
-		if cost_tminus1 == population[0].cost :
-			cpt+=1
+		if cost_old == population[0].cost:
+			cpt += 1
 
-		cost_tminus1 = population[0].cost
+		cost_old = population[0].cost
 
-		if gui :
+		if gui:
 			draw(cities)
 			draw_itinerary("Un chemin de cout {0}".format(population[0].cost), population[0].route)
 
 	chosen_one = heappop(population)
-
+	print("found route with cost {0}".format(chosen_one.cost))
 	return [chosen_one.cost, chosen_one.route]
 
 
@@ -320,6 +358,7 @@ parser.add_argument('filename', nargs='?', default=None)
 args = parser.parse_args()
 
 nogui, maxtime, filename = [vars(args).get(k) for k in ['nogui', 'maxtime', 'filename']]
+gui = not nogui
 
 # INIT
 child = namedtuple('child', 'cost route')
@@ -328,7 +367,7 @@ crossover_child_proportion = 0.1
 mutation_num_swap = 0.2
 mutation_proportion = 1
 num_parents_proportion = 0.02
-max_no_coste_changement = 3000
+max_no_cost_change = 500
 
 screen_x = screen_y = 500
 
@@ -338,25 +377,28 @@ city_radius = 3
 font_color = [255, 255, 255]  # white
 
 pygame.init()
-window = pygame.display.set_mode((screen_x, screen_y))
-pygame.display.set_caption('Exemple')
-screen = pygame.display.get_surface()
-font = pygame.font.Font(None, 30)
+if gui:
+	window = pygame.display.set_mode((screen_x, screen_y))
+	pygame.display.set_caption('Exemple')
+	screen = pygame.display.get_surface()
+	font = pygame.font.Font(None, 30)
 
 end = False
 
 # LOOP
 while not end:
 
-	cost, itinerary = ga_solve(filename, not nogui, maxtime)
-	draw_itinerary("Un chemin de cout {0}".format(cost), itinerary)
-
-	while True:
-		event = pygame.event.wait()
-		if event.type == KEYDOWN:
-			if event.key == K_RETURN:
-				collecting = True
-				break
-			else:
-				end = True
-				break
+	cost, itinerary = ga_solve(filename, gui, maxtime)
+	if gui:
+		draw_itinerary("Un chemin de cout {0}".format(cost), itinerary)
+		while True:
+			event = pygame.event.wait()
+			if event.type == KEYDOWN:
+				if event.key == K_RETURN:
+					collecting = True
+					break
+				else:
+					end = True
+					break
+	else:
+		end = True

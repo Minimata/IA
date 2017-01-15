@@ -20,6 +20,7 @@ Python 3.5 Ready, Romain Claret
 # Ces modules doivent être dans le PYTHONPATH; p.ex. dans le répertoire courant
 
 modules = (
+    "RamseyerSerex",
 	# "Claret_Visinand",
 	# Éventuellement d'autres modules pour comparer plusieurs versions...
 )
